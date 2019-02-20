@@ -3,11 +3,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-device = 'cpu'
 
 class GraphConvolution(nn.Module):
 	def __init__(self, input_dim, output_dim, num_vetex, act=F.relu, dropout=0.5, bias=True):
 		super(GraphConvolution, self).__init__()
+
+		self.alpha = 0.8
 
 		self.act = act
 		self.dropout = nn.Dropout(dropout)
@@ -22,8 +23,6 @@ class GraphConvolution(nn.Module):
 
 	def normalize(self, m):
 		rowsum = torch.sum(m, 0)
-		r_mat = torch.diag(rowsum)
-
 		r_inv = torch.pow(rowsum, -0.5)
 		r_mat_inv = torch.diag(r_inv).float()
 
@@ -34,10 +33,15 @@ class GraphConvolution(nn.Module):
 
 	def forward(self, adj, x):
 
+		x = self.dropout(x)
+
 		# K-ordered Chebyshev polynomial
 		adj_norm = self.normalize(adj)
+		sqr_norm = self.normalize(torch.mm(adj,adj))
+		m_norm = self.alpha*adj_norm + (1.-self.alpha)*sqr_norm
+
 		x_tmp = torch.einsum('abcd,de->abce', x, self.weight)
-		x_out = torch.einsum('ij,abid->abjd', adj_norm, x_tmp)
+		x_out = torch.einsum('ij,abid->abjd', m_norm, x_tmp)
 		if self.bias is not None:
 			x_out += self.bias
 
@@ -47,21 +51,21 @@ class GraphConvolution(nn.Module):
 		
 
 class StandConvolution(nn.Module):
-	def __init__(self, dims, num_classes):
+	def __init__(self, dims, num_classes, dropout):
 		super(StandConvolution, self).__init__()
 
-		print('input_dim, output_dim')
+		self.dropout = nn.Dropout(dropout)
 		self.conv = nn.Sequential(
 								   nn.Conv2d(dims[0], dims[1], kernel_size=3),
-								   nn.BatchNorm2d(dims[1]),
+								   nn.InstanceNorm2d(dims[1]),
 								   nn.ReLU(inplace=True),
 								   nn.AvgPool2d(3, stride=2),
 								   nn.Conv2d(dims[1], dims[2], kernel_size=3),
-								   nn.BatchNorm2d(dims[2]),
+								   nn.InstanceNorm2d(dims[2]),
 								   nn.ReLU(inplace=True),
 								   nn.AvgPool2d(3, stride=2),
 								   nn.Conv2d(dims[2], dims[3], kernel_size=3),
-								   nn.BatchNorm2d(dims[3]),
+								   nn.InstanceNorm2d(dims[3]),
 								   nn.ReLU(inplace=True),
 								   nn.AvgPool2d(3, stride=2)
 								   ).to(device)
@@ -69,8 +73,23 @@ class StandConvolution(nn.Module):
 		self.fc = nn.Linear(dims[3]*3, num_classes).to(device)
 
 	def forward(self, x):
-		x = x.permute(0,3,1,2)
+		x = self.dropout(x.permute(0,3,1,2))
 		x_tmp = self.conv(x)
 		x_out = self.fc(x_tmp.view(x.size(0), -1))
+
+		return x_out
+
+
+class StandRecurrent(nn.Module):
+	def __init__(self, dims, num_classes, dropout):
+		super(StandRecurrent, self).__init__()
+
+		self.lstm = nn.LSTM(dims[0]*45, dims[1], batch_first=True,
+							dropout=0).to(device)
+		self.fc = nn.Linear(dims[1], num_classes).to(device)
+
+	def forward(self, x):
+		x_tmp,_ = self.lstm(x.contiguous().view(x.size(0), x.size(1), -1))
+		x_out = self.fc(x_tmp[:,-1])
 
 		return x_out

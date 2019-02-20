@@ -6,7 +6,7 @@ import numpy as np
 
 
 file_name = './dataset/Florence_3d_actions/Florence_dataset_WorldCoordinates.txt'
-f =open(file_name)
+f = open(file_name)
 lines = f.readlines()
 prev_video = int(lines[0][0])
 prev_categ = int(lines[0][2])
@@ -43,20 +43,20 @@ for line in lines:
 				new_datas.append(np.interp(new_xloc, xloc, data))
 			frames = torch.from_numpy(np.stack(new_datas, 0)).t()
 
-			
 		frames = frames.view(32, -1, 3)
-		if aid <= 8:
+		if prev_actor < 9:
 			train.append(frames)
 			train_label.append(prev_categ)
-		elif aid == 9:
+		elif prev_actor < 10:
 			valid.append(frames)
 			valid_label.append(prev_categ)
 		else:
 			test.append(frames)
 			test_label.append(prev_categ)
 		frames = [np.reshape(np.asarray(features), (-1,3))]
-		prev_video = vid
-		prev_categ = cid
+	prev_actor = aid
+	prev_video = vid
+	prev_categ = cid
 	
 
 if len(frames) >= 32:
@@ -75,12 +75,15 @@ else:
 
 	
 frames = frames.view(32, -1, 3)
-if aid <= 8:
+if aid < 9:
 	train.append(frames)
-elif aid == 9:
+	train_label.append(prev_categ)
+elif aid < 10:
 	valid.append(frames)
+	valid_label.append(prev_categ)
 else:
 	test.append(frames)
+	test_label.append(prev_categ)
 
 train_label = torch.from_numpy(np.asarray(train_label))
 valid_label = torch.from_numpy(np.asarray(valid_label))
