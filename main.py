@@ -41,7 +41,8 @@ A = [[0,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
 A = torch.from_numpy(np.asarray(A)).to(device)
 
 model = GGCN(A, train_tensor.size(3), args.num_classes, 
-			 [train_tensor.size(3), train_tensor.size(3)*3], [train_tensor.size(3)*3, 16, 32, 64], args.dropout_rate)
+			 [train_tensor.size(3), train_tensor.size(3)*3], [train_tensor.size(3)*3, 16, 32, 64], 
+			 args.feat_dims, args.dropout_rate)
 if device == 'cuda':
 	model.cuda()
 
@@ -98,7 +99,7 @@ def train():
 					val_loss += criterion(logit, target.view(1)).item()
 					val_acc += accuracy(logit, target.view(1))
 
-				if best_acc < (val_acc/i):
+				if best_acc <= (val_acc/i):
 					best_epoch = epoch+1
 					best_acc = (val_acc/i)
 					torch.save(model.state_dict(), os.path.join(args.model_path, 'model-%d.pkl'%(best_epoch)))

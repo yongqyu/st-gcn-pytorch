@@ -47,6 +47,13 @@ for line in lines:
 		if prev_actor < 9:
 			train.append(frames)
 			train_label.append(prev_categ)
+			#train.append(torch.stack([frames[:,:,2],frames[:,:,1],frames[:,:,0]], 2))
+			#train_label.append(prev_categ)
+			#train.append(torch.stack([frames[:,:,0],frames[:,:,2],frames[:,:,1]], 2))
+			#train_label.append(prev_categ)
+			#train.append(torch.cat([frames[:,:3,:],frames[:,6:9,:],frames[:,3:6,:],
+			#						frames[:,12:15,:],frames[:,9:12,:]], 1))
+			#train_label.append(prev_categ)
 		elif prev_actor < 10:
 			valid.append(frames)
 			valid_label.append(prev_categ)
@@ -78,6 +85,14 @@ frames = frames.view(32, -1, 3)
 if aid < 9:
 	train.append(frames)
 	train_label.append(prev_categ)
+	#train.append(torch.stack([frames[:,:,2],frames[:,:,1],frames[:,:,0]], 2))
+	#train_label.append(prev_categ)
+	#train.append(torch.stack([frames[:,:,0],frames[:,:,2],frames[:,:,1]], 2))
+	#train_label.append(prev_categ)
+	#train_label.append(prev_categ)
+	#train.append(torch.cat([frames[:,:3,:],frames[:,6:9,:],frames[:,3:6,:],
+	#						frames[:,12:15,:],frames[:,9:12,:]], 1))
+	#train_label.append(prev_categ)
 elif aid < 10:
 	valid.append(frames)
 	valid_label.append(prev_categ)

@@ -13,7 +13,7 @@ def get_args():
 	parser.add_argument('--model_path',  type=str, default='./models')
 
 	parser.add_argument('--batch_size',  type=int, default=1)
-	parser.add_argument('--learning_rate',type=int, default=0.001)
+	parser.add_argument('--learning_rate',type=int, default=0.005)
 	parser.add_argument('--beta1',type=int, default=0.5)
 	parser.add_argument('--beta2',type=int, default=0.99)
 	parser.add_argument('--dropout_rate',type=int, default=0.0)
@@ -25,6 +25,7 @@ def get_args():
 	parser.add_argument('--val_step',type=int, default=2)
 
 	parser.add_argument('--num_classes',type=int, default=9)
+	parser.add_argument('--feat_dims',type=int, default=13)
 	
 
 	args = parser.parse_args()

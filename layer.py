@@ -8,7 +8,7 @@ class GraphConvolution(nn.Module):
 	def __init__(self, input_dim, output_dim, num_vetex, act=F.relu, dropout=0.5, bias=True):
 		super(GraphConvolution, self).__init__()
 
-		self.alpha = 0.8
+		self.alpha = 1.
 
 		self.act = act
 		self.dropout = nn.Dropout(dropout)
@@ -56,18 +56,18 @@ class StandConvolution(nn.Module):
 
 		self.dropout = nn.Dropout(dropout)
 		self.conv = nn.Sequential(
-								   nn.Conv2d(dims[0], dims[1], kernel_size=3),
+								   nn.Conv2d(dims[0], dims[1], kernel_size=5, stride=2),
 								   nn.InstanceNorm2d(dims[1]),
 								   nn.ReLU(inplace=True),
-								   nn.AvgPool2d(3, stride=2),
-								   nn.Conv2d(dims[1], dims[2], kernel_size=3),
+								   #nn.AvgPool2d(3, stride=2),
+								   nn.Conv2d(dims[1], dims[2], kernel_size=5, stride=2),
 								   nn.InstanceNorm2d(dims[2]),
 								   nn.ReLU(inplace=True),
-								   nn.AvgPool2d(3, stride=2),
-								   nn.Conv2d(dims[2], dims[3], kernel_size=3),
+								   #nn.AvgPool2d(3, stride=2),
+								   nn.Conv2d(dims[2], dims[3], kernel_size=5, stride=2),
 								   nn.InstanceNorm2d(dims[3]),
 								   nn.ReLU(inplace=True),
-								   nn.AvgPool2d(3, stride=2)
+								   #nn.AvgPool2d(3, stride=2)
 								   ).to(device)
 
 		self.fc = nn.Linear(dims[3]*3, num_classes).to(device)
